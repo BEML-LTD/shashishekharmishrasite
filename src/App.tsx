@@ -9,6 +9,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import AppHome from "./pages/AppHome";
 import ProtectedRoute from "./routes/ProtectedRoute";
+import AdminUnlock from "./pages/AdminUnlock";
+import AdminLogin from "./pages/AdminLogin";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +24,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/admin-unlock" element={<AdminUnlock />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
 
           <Route
             path="/app"
