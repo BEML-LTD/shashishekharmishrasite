@@ -21,6 +21,8 @@ export default function AdminUnlock() {
       toast({ title: "Invalid passcode", description: "Please try again.", variant: "destructive" });
       return;
     }
+    // Only used to gate access to the admin login UI (not authorization).
+    sessionStorage.setItem("admin_unlocked", "true");
     navigate("/admin-login", { replace: true });
   };
 

@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function AdminLogin() {
   const { toast } = useToast();
@@ -13,6 +13,12 @@ export default function AdminLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Gate this screen behind the passcode unlock, per PRD.
+  useEffect(() => {
+    const unlocked = sessionStorage.getItem("admin_unlocked") === "true";
+    if (!unlocked) navigate("/admin-unlock", { replace: true });
+  }, [navigate]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,9 +60,17 @@ export default function AdminLogin() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" type="submit" disabled={loading}>
-                {loading ? "Signing in…" : "Sign in"}
-              </Button>
+              <div className="flex w-full flex-col gap-3">
+                <Button className="w-full" type="submit" disabled={loading}>
+                  {loading ? "Signing in…" : "Sign in"}
+                </Button>
+                <div className="text-sm text-muted-foreground">
+                  Officer login?{" "}
+                  <Link className="text-primary underline underline-offset-4" to="/login">
+                    Go to roster sign in
+                  </Link>
+                </div>
+              </div>
             </CardFooter>
           </form>
         </Card>
