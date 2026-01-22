@@ -16,7 +16,6 @@ export default function Signup() {
   const [selectedStaff, setSelectedStaff] = useState<string>("");
   const [rosterLoading, setRosterLoading] = useState(true);
   const [roster, setRoster] = useState<Array<{ staff_number: string; full_name: string }>>([]);
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -51,6 +50,7 @@ export default function Signup() {
       if (!fullName) throw new Error("Selected roster entry not found.");
       const staffNumber = selectedStaff;
       const email = staffNumberToEmail(staffNumber);
+      const password = `${staffNumber.trim()}@1234`;
 
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -96,7 +96,7 @@ export default function Signup() {
         <Card className="w-full">
           <CardHeader>
             <CardTitle>Create account</CardTitle>
-            <CardDescription>Select your name from the roster and set a password.</CardDescription>
+            <CardDescription>Select your name from the roster. Password is StaffNumber@1234.</CardDescription>
           </CardHeader>
           <form onSubmit={onSubmit}>
             <CardContent className="space-y-4">
@@ -114,19 +114,6 @@ export default function Signup() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={8}
-                />
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">

@@ -16,7 +16,6 @@ export default function Login() {
   const from = (location.state as { from?: { pathname?: string } } | null)?.from?.pathname;
 
   const [selectedStaff, setSelectedStaff] = useState<string>("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [rosterLoading, setRosterLoading] = useState(true);
   const [roster, setRoster] = useState<Array<{ staff_number: string; full_name: string }>>([]);
@@ -49,6 +48,11 @@ export default function Login() {
     [roster, selectedStaff]
   );
 
+  const defaultPassword = useMemo(() => {
+    const normalized = selectedStaff.trim();
+    return normalized ? `${normalized}@1234` : "";
+  }, [selectedStaff]);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -56,8 +60,45 @@ export default function Login() {
       if (!selectedStaff) throw new Error("Please select your name from the roster.");
       const email = staffNumberToEmail(selectedStaff);
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      // Per requirement: password is always StaffNumber@1234
+      const password = `${selectedStaff.trim()}@1234`;
+
+      // 1) Try sign-in
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+
+      // 2) If user doesn't exist yet, auto-create their account from roster selection
+      if (signInError?.message?.toLowerCase?.().includes("invalid login credentials")) {
+        const fullName = roster.find((r) => r.staff_number === selectedStaff)?.full_name;
+        if (!fullName) throw signInError;
+
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: {
+              full_name: fullName,
+              staff_number: selectedStaff,
+            },
+          },
+        });
+        if (signUpError) throw signUpError;
+
+        // Ensure profile exists (role triggers run on profile insert)
+        if (signUpData.user) {
+          await supabase.from("profiles").upsert({
+            user_id: signUpData.user.id,
+            full_name: fullName,
+            staff_number: selectedStaff,
+          });
+        }
+
+        // Retry sign-in
+        const { error: retryError } = await supabase.auth.signInWithPassword({ email, password });
+        if (retryError) throw retryError;
+      } else if (signInError) {
+        throw signInError;
+      }
 
       navigate(from || "/app", { replace: true });
     } catch (err: any) {
@@ -77,7 +118,7 @@ export default function Login() {
         <Card className="w-full">
           <CardHeader>
             <CardTitle>Sign in</CardTitle>
-            <CardDescription>Select your name and enter your password.</CardDescription>
+            <CardDescription>Select your name. Password is StaffNumber@1234.</CardDescription>
           </CardHeader>
           <form onSubmit={onSubmit}>
             <CardContent className="space-y-4">
@@ -105,10 +146,11 @@ export default function Login() {
                   id="password"
                   type="password"
                   autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  value={defaultPassword}
+                  readOnly
+                  disabled={!selectedStaff}
                 />
+                <p className="text-xs text-muted-foreground">Example: 25668@1234</p>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-3">
