@@ -2,29 +2,61 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { staffNumberToEmail } from "@/lib/authEmail";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Signup() {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const [fullName, setFullName] = useState("");
-  const [staffNumber, setStaffNumber] = useState("");
-  const [email, setEmail] = useState("");
+  const [selectedStaff, setSelectedStaff] = useState<string>("");
+  const [rosterLoading, setRosterLoading] = useState(true);
+  const [roster, setRoster] = useState<Array<{ staff_number: string; full_name: string }>>([]);
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const run = async () => {
+      setRosterLoading(true);
+      const { data, error } = await supabase
+        .from("officer_roster")
+        .select("staff_number, full_name")
+        .order("full_name", { ascending: true });
+      if (!mounted) return;
+      if (error) {
+        setRoster([]);
+        toast({ title: "Failed to load roster", description: error.message, variant: "destructive" });
+      } else {
+        setRoster(data ?? []);
+      }
+      setRosterLoading(false);
+    };
+    run();
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
+      if (!selectedStaff) throw new Error("Please select your name from the roster.");
+      const fullName = roster.find((r) => r.staff_number === selectedStaff)?.full_name;
+      if (!fullName) throw new Error("Selected roster entry not found.");
+      const staffNumber = selectedStaff;
+      const email = staffNumberToEmail(staffNumber);
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          emailRedirectTo: window.location.origin,
           data: {
             full_name: fullName,
             staff_number: staffNumber,
@@ -64,30 +96,24 @@ export default function Signup() {
         <Card className="w-full">
           <CardHeader>
             <CardTitle>Create account</CardTitle>
-            <CardDescription>Sign up with your details and set a password.</CardDescription>
+            <CardDescription>Select your name from the roster and set a password.</CardDescription>
           </CardHeader>
           <form onSubmit={onSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="fullName">Full name</Label>
-                <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="staff">Staff number</Label>
-                <Input id="staff" value={staffNumber} onChange={(e) => setStaffNumber(e.target.value)} required />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <Label>Your name</Label>
+                <Select value={selectedStaff} onValueChange={setSelectedStaff} disabled={rosterLoading}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={rosterLoading ? "Loading roster…" : "Select your name"} />
+                  </SelectTrigger>
+                  <SelectContent className="z-50 bg-popover">
+                    {roster.map((r) => (
+                      <SelectItem key={r.staff_number} value={r.staff_number}>
+                        {r.full_name} ({r.staff_number})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
