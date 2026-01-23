@@ -14,6 +14,14 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   useEffect(() => {
     let mounted = true;
 
+    // IMPORTANT: subscribe before getSession() to avoid missing the initial session
+    // in some browsers/iframes where auth state can change quickly.
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      setHasSession(Boolean(session));
+      setLoading(false);
+    });
+
     const run = async () => {
       const { data } = await supabase.auth.getSession();
       if (!mounted) return;
@@ -22,12 +30,6 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     };
 
     run();
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) return;
-      setHasSession(Boolean(session));
-      setLoading(false);
-    });
 
     return () => {
       mounted = false;
