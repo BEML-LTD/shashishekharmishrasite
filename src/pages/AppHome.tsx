@@ -27,7 +27,10 @@ export default function AppHome() {
           </CardHeader>
           <CardContent className="flex items-center justify-between gap-4">
             <div className="text-sm text-muted-foreground">Route: /app</div>
-            <Button onClick={logout}>Logout</Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => navigate("/app/profile")}>Profile</Button>
+              <Button onClick={logout}>Logout</Button>
+            </div>
           </CardContent>
         </Card>
       </div>

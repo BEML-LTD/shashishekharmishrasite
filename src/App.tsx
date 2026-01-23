@@ -11,6 +11,7 @@ import AppHome from "./pages/AppHome";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminUnlock from "./pages/AdminUnlock";
 import AdminLogin from "./pages/AdminLogin";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,15 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <AppHome />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/app/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />
