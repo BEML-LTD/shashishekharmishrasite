@@ -7,11 +7,14 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import AppHome from "./pages/AppHome";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import AdminUnlock from "./pages/AdminUnlock";
 import AdminLogin from "./pages/AdminLogin";
 import Profile from "./pages/Profile";
+import Dashboard from "./pages/Dashboard";
+import Complaints from "./pages/Complaints";
+import Manage from "./pages/Manage";
+import AppLayout from "./layouts/AppLayout";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +35,9 @@ const App = () => (
             path="/app"
             element={
               <ProtectedRoute>
-                <AppHome />
+                <AppLayout>
+                  <Dashboard />
+                </AppLayout>
               </ProtectedRoute>
             }
           />
@@ -41,7 +46,31 @@ const App = () => (
             path="/app/profile"
             element={
               <ProtectedRoute>
-                <Profile />
+                <AppLayout>
+                  <Profile />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/app/complaints"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Complaints />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/app/manage"
+            element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <Manage />
+                </AppLayout>
               </ProtectedRoute>
             }
           />
