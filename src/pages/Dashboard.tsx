@@ -139,7 +139,9 @@ export default function Dashboard() {
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
         <p className="text-sm text-muted-foreground">
-          {flags.isAdminOrInCharge ? "All complaints (team view)" : "Your complaints (officer view)"}
+          {flags.isAdminOrInCharge
+            ? "All complaints (manage & update)"
+            : "All complaints (view only — you can edit your own within 24h until resolved)"}
         </p>
       </header>
 
