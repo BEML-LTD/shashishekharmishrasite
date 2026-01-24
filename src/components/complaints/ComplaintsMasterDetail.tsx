@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/drawer";
 import ComplaintDetailPanel from "./ComplaintDetailPanel";
 import type { ComplaintFullRow } from "./ComplaintEditDialog";
@@ -26,6 +26,27 @@ export default function ComplaintsMasterDetail() {
   const isMobile = useIsMobile();
   const { flags } = useRoleFlags();
   const { userId } = useCurrentUserId();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("realtime:complaints")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "complaints",
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: ["complaints", "list"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
 
   const listQuery = useQuery({
     queryKey: ["complaints", "list"],
