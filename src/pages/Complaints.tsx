@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import WorkEntryForm from "@/components/complaints/WorkEntryForm";
+import ComplaintsMasterDetail from "@/components/complaints/ComplaintsMasterDetail";
 
 export default function Complaints() {
   return (
@@ -15,6 +16,15 @@ export default function Complaints() {
         </CardHeader>
         <CardContent>
           <WorkEntryForm />
+        </CardContent>
+      </Card>
+
+      <Card className="glass glass-border">
+        <CardHeader>
+          <CardTitle>All complaints</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ComplaintsMasterDetail />
         </CardContent>
       </Card>
     </main>

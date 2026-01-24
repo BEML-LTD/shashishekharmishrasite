@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRoleFlags } from "@/hooks/useRoleFlags";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -73,6 +73,24 @@ export default function Dashboard() {
   });
 
   const complaints = complaintsQuery.data ?? [];
+
+  // Realtime: refetch dashboard data when complaints change (insert/update/delete)
+  useEffect(() => {
+    const channel = supabase
+      .channel("dashboard-complaints")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "complaints" },
+        () => {
+          qc.invalidateQueries({ queryKey: ["dashboard", "complaints"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
 
   const coachOptions = useMemo(() => {
     const set = new Set<string>();
