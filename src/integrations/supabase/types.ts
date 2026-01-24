@@ -213,14 +213,43 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_audit: {
+        Row: {
+          actor_user_id: string | null
+          changes: Json
+          created_at: string
+          id: string
+          staff_number: string | null
+          target_user_id: string
+        }
+        Insert: {
+          actor_user_id?: string | null
+          changes?: Json
+          created_at?: string
+          id?: string
+          staff_number?: string | null
+          target_user_id: string
+        }
+        Update: {
+          actor_user_id?: string | null
+          changes?: Json
+          created_at?: string
+          id?: string
+          staff_number?: string | null
+          target_user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string
           full_name: string
           id: string
+          must_change_password: boolean
           phone: string | null
           staff_number: string
+          temp_password_set_at: string | null
           updated_at: string
           user_id: string
         }
@@ -229,8 +258,10 @@ export type Database = {
           created_at?: string
           full_name: string
           id?: string
+          must_change_password?: boolean
           phone?: string | null
           staff_number: string
+          temp_password_set_at?: string | null
           updated_at?: string
           user_id: string
         }
@@ -239,8 +270,10 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          must_change_password?: boolean
           phone?: string | null
           staff_number?: string
+          temp_password_set_at?: string | null
           updated_at?: string
           user_id?: string
         }
