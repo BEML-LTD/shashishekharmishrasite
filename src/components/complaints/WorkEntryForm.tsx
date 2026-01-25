@@ -245,6 +245,37 @@ export default function WorkEntryForm() {
         if (updateErr) throw updateErr;
       }
 
+     // Sync to Google Sheets immediately (and log compliance_sync)
+     (async () => {
+       try {
+         const { data: sheetPayload } = await supabase
+           .from("complaints")
+           .select("*")
+           .eq("id", complaintId)
+           .single();
+
+         if (!sheetPayload) return;
+
+         const sheetRes = await supabase.functions.invoke("sync-complaint-to-sheets", {
+           body: sheetPayload,
+         });
+
+         const syncLog = {
+           complaint_id: complaintId,
+           status: sheetRes.error ? "failed" : "success",
+           message: sheetRes.error ? JSON.stringify(sheetRes.error) : null,
+         };
+         await supabase.from("compliance_sync").insert(syncLog);
+       } catch (err: any) {
+         console.error("Sheets sync error:", err);
+         await supabase.from("compliance_sync").insert({
+           complaint_id: complaintId,
+           status: "failed",
+           message: err?.message || "Unknown error",
+         });
+       }
+     })();
+
       toast({
         title: "Work entry submitted",
         description: evidencePaths.length ? `Saved with ${evidencePaths.length} photo(s).` : "Saved successfully.",
