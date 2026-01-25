@@ -73,7 +73,9 @@ export default function ComplaintsMasterDetail() {
   const canDelete = Boolean(flags.isAdminOrInCharge);
   const canEditStatus = Boolean(flags.isAdminOrInCharge);
   const canEdit = useMemo(() => {
-    if (!selected || !userId) return false;
+    if (!selected) return false;
+    if (flags.isAdminOrInCharge) return true; // Admin/In-charge always can edit
+    if (!userId) return false; // still loading or no auth
     return flags.isAdminOrInCharge || canEditOwn(selected, userId);
   }, [flags.isAdminOrInCharge, selected, userId]);
 
